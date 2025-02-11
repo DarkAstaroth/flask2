@@ -6,6 +6,11 @@ import requests
 
 app = Flask(__name__)
 
+@app.route('/logs', methods=['POST'])
+def hola():
+    body = request.get_json()  # Obtiene el cuerpo de la solicitud
+    return jsonify(body), 200  # Retorna el mismo JSON recibido
+
 @app.route('/hola', methods=['GET'])
 def hola():
     return jsonify({"mensaje": "Hola"}), 200 
