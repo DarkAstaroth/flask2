@@ -6,6 +6,12 @@ import requests
 
 app = Flask(__name__)
 
+
+@app.route('/test', methods=['POST'])
+def test():
+    if request.method == 'POST':
+        return jsonify(request.get_json()), 200
+
 @app.route('/logs', methods=['POST'])
 def logs():
     body = request.get_json()  # Obtiene el cuerpo de la solicitud
