@@ -1,16 +1,10 @@
-from flask import Flask, jsonify,request, jsonify
-import os
-import jwt
-import time
-import requests
-
 from flask import Flask, jsonify, request
 import os
 
 app = Flask(__name__)
 
 # Fake DB (lista de usuarios) con 10 usuarios predefinidos
-users = [
+usuarios = [
     {"id": 1, "nombre": "Juan", "paterno": "Pérez", "materno": "Gómez", "fecha_nacimiento": "1990-01-01", "carnet": "123456", "sexo": "M"},
     {"id": 2, "nombre": "María", "paterno": "López", "materno": "García", "fecha_nacimiento": "1992-05-15", "carnet": "654321", "sexo": "F"},
     {"id": 3, "nombre": "Carlos", "paterno": "Martínez", "materno": "Rodríguez", "fecha_nacimiento": "1985-11-30", "carnet": "987654", "sexo": "M"},
@@ -27,18 +21,18 @@ users = [
 user_id_counter = 11
 
 # API para crear un usuario
-@app.route('/users/create', methods=['POST'])
-def create_user():
+@app.route('/usuarios/crear', methods=['POST'])
+def crear_usuario():
     global user_id_counter
     data = request.get_json()
 
     # Validar que todos los campos estén presentes
-    required_fields = ['nombre', 'paterno', 'materno', 'fecha_nacimiento', 'carnet', 'sexo']
-    if not all(field in data for field in required_fields):
+    campos_obligatorios = ['nombre', 'paterno', 'materno', 'fecha_nacimiento', 'carnet', 'sexo']
+    if not all(campo in data for campo in campos_obligatorios):
         return jsonify({"error": "Faltan campos obligatorios"}), 400
 
     # Crear el nuevo usuario
-    new_user = {
+    nuevo_usuario = {
         "id": user_id_counter,
         "nombre": data['nombre'],
         "paterno": data['paterno'],
@@ -49,19 +43,37 @@ def create_user():
     }
 
     # Agregar el usuario a la fake DB
-    users.append(new_user)
+    usuarios.append(nuevo_usuario)
     user_id_counter += 1
 
-    return jsonify(new_user), 201
+    return jsonify(nuevo_usuario), 201
 
 # API para listar todos los usuarios
-@app.route('/users/list', methods=['POST'])
-def list_users():
-    return jsonify(users), 200
+@app.route('/usuarios/listar', methods=['POST'])
+def listar_usuarios():
+    return jsonify(usuarios), 200
+
+# API para buscar un usuario por ID
+@app.route('/usuarios/buscar', methods=['POST'])
+def buscar_usuario():
+    data = request.get_json()
+
+    # Validar que el campo 'id' esté presente
+    if 'id' not in data:
+        return jsonify({"error": "El campo 'id' es obligatorio"}), 400
+
+    # Buscar el usuario por ID
+    user_id = data['id']
+    usuario = next((user for user in usuarios if user['id'] == user_id), None)
+
+    if usuario:
+        return jsonify(usuario), 200
+    else:
+        return jsonify({"error": f"Usuario con ID {user_id} no encontrado"}), 404
 
 # API para eliminar un usuario por ID
-@app.route('/users/delete', methods=['POST'])
-def delete_user():
+@app.route('/usuarios/eliminar', methods=['POST'])
+def eliminar_usuario():
     data = request.get_json()
 
     # Validar que el campo 'id' esté presente
@@ -70,14 +82,14 @@ def delete_user():
 
     # Buscar y eliminar el usuario
     user_id = data['id']
-    global users
-    users = [user for user in users if user['id'] != user_id]
+    global usuarios
+    usuarios = [user for user in usuarios if user['id'] != user_id]
 
-    return jsonify({"message": f"Usuario con ID {user_id} eliminado"}), 200
+    return jsonify({"mensaje": f"Usuario con ID {user_id} eliminado"}), 200
 
 @app.route('/')
 def index():
-    return jsonify({"Choo Choo": "Cliente de usuarios"})
+    return jsonify({"Choo Choo": "Cliente publicador - IOP"})
 
 if __name__ == '__main__':
     app.run(debug=True, port=os.getenv("PORT", default=5000))
