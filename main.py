@@ -90,6 +90,54 @@ def cifrado_hibrido():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/descifrar', methods=['POST'])
+def descifrar():
+    try:
+        # Recibir datos en el cuerpo de la solicitud
+        data = request.get_json()
+        datos_cifrados = base64.b64decode(data['datos'])
+        clave_simetrica_cifrada = base64.b64decode(data['clave_simetrica'])
+        iv = base64.b64decode(data['iv'])
+        tag = base64.b64decode(data['tag'])
+
+        # Obtener la clave privada de la base de datos
+        llave = Llaves.query.first()
+        if not llave:
+            return jsonify({"error": "No se ha encontrado ninguna clave privada en la base de datos."}), 404
+
+        # Convertir la clave privada de Base64 a formato PEM
+        private_key_pem = base64.b64decode(llave.private_key.encode('utf-8'))
+
+        # Cargar la clave privada
+        private_key = serialization.load_pem_private_key(
+            private_key_pem,
+            password=None,  # Si la clave privada está cifrada, necesitas la contraseña
+            backend=default_backend()
+        )
+
+        # Descifrar la clave simétrica con la clave privada RSA
+        clave_simetrica = private_key.decrypt(
+            clave_simetrica_cifrada,
+            padding.OAEP(
+                mgf=padding.MGF1(algorithm=hashes.SHA256()),
+                algorithm=hashes.SHA256(),
+                label=None
+            )
+        )
+
+        # Descifrar el mensaje con AES-GCM
+        cipher = Cipher(algorithms.AES(clave_simetrica), modes.GCM(iv, tag), backend=default_backend())
+        decryptor = cipher.decryptor()
+        mensaje_descifrado = decryptor.update(datos_cifrados) + decryptor.finalize()
+
+        # Responder con el mensaje descifrado
+        return jsonify({"mensaje_descifrado": mensaje_descifrado.decode('utf-8')}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # API para generar un token JWT
 @app.route('/generar-token', methods=['POST'])
 def generar_token():
@@ -131,15 +179,19 @@ def generar_llaves():
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     )
 
+    # Codificar las llaves en base64
+    private_base64 = base64.b64encode(private_pem).decode('utf-8')
+    public_base64 = base64.b64encode(public_pem).decode('utf-8')
+
     # Crear nueva entrada en la base de datos
-    nueva_llave = Llaves(private_key=private_pem.decode('utf-8'), public_key=public_pem.decode('utf-8'))
+    nueva_llave = Llaves(private_key=private_base64, public_key=public_base64)
     db.session.add(nueva_llave)
     db.session.commit()
 
     return jsonify({
         "id": nueva_llave.id,
-        "private_key": private_pem.decode('utf-8'),
-        "public_key": public_pem.decode('utf-8'),
+        "private_key": private_base64,
+        "public_key": public_base64,
         "fecha_creacion": nueva_llave.fecha_creacion.isoformat()
     }), 200
 
@@ -152,10 +204,10 @@ def obtener_llave_publica():
     if not llave:
         return jsonify({"error": "No se ha encontrado ninguna llave pública en la base de datos."}), 404
 
-    # Convertir la clave pública a Base64 (asegúrate de codificar la cadena a bytes)
-    public_key_base64 = base64.b64encode(llave.public_key.encode('utf-8')).decode('utf-8')
+    # La llave pública ya está almacenada en Base64
+    public_key_base64 = llave.public_key
 
-    # Devolver la llave pública
+    # Devolver la llave pública en Base64
     return jsonify({
         "public_key": public_key_base64,
         "fecha_creacion": llave.fecha_creacion.isoformat()
