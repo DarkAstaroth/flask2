@@ -2,7 +2,8 @@ import base64
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
-from db_client import Llaves, db
+from database.db_client import Llaves, db
+
 
 def generar_llaves_service():
     private_key = rsa.generate_private_key(
@@ -30,11 +31,15 @@ def generar_llaves_service():
         "fecha_creacion": nueva_llave.fecha_creacion.isoformat(),
     }
 
+
 def obtener_llave_publica_service():
     llave = Llaves.query.first()
     if not llave:
-        return {"error": "No se ha encontrado ninguna llave pública en la base de datos."}
+        return {
+            "error": "No se ha encontrado ninguna llave pública en la base de datos."
+        }
     return {
         "public_key": llave.public_key,
         "fecha_creacion": llave.fecha_creacion.isoformat(),
     }
+
