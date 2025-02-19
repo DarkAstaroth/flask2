@@ -13,7 +13,7 @@ load_dotenv()
 
 def create_app():
     app = Flask(__name__)
-    api = Api(app, version="1.0", title="Documentación", description="Documentación con Swagger",doc="/docs")
+    api = Api(app, version="1.0", title="Documentación", description="Documentación con Swagger")
     
     init_db(app)
     
