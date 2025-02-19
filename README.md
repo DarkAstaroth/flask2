@@ -1,23 +1,25 @@
----
-title: Flask
-description: A popular minimal server framework for Python
-tags:
-  - python
-  - flask
----
+# Entidad IOP
 
-# Python Flask Example
+## Descripción del proyecto
 
-This is a [Flask](https://flask.palletsprojects.com/en/1.1.x/) app that serves a simple JSON response.
+Este proyecto tiene la finalidad de simular una entidad que registrara sus
+endpoints para ser publicados y consumidos mediante la plataforma de Interoperabilidad usando cifrado
+hibtrido de extremo a extremo.
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new/template/zUcpux)
+## Funcionalidades
 
-## ✨ Features
+- **Gestion de usuarios faker** - Permite gestionar CRUD fake.
+- **Creación de llaves RSA** - Permite generar llaves RSA para cifrado y descifrado de datos.
+- **Crifrado y descifrado de datos** - Permite probar el cirfrado hibrido de datos usando la llave
+publica y privada.
 
-- Python
-- Flask
+## Tecnologías utilizadas
 
-## 💁‍♀️ How to use
+- **Flask** - Un microframework para Python que permite crear aplicaciones web rápidamente.
+- **SQLAlchemy** - Un framework de base de datos que proporciona una capa de abstraçón de acceso a bases de datos.
+- **PostgreSQL** - Un sistema de gestión de bases de datos relacionales.
+- **Docker** - Una plataforma de contenedores que permite ejecutar aplicaciones en contenedores.
 
-- Install Python requirements `pip install -r requirements.txt`
-- Start the server for development `python3 main.py`
+## Instalación
+
+para instalar y configurar el proyecto consulta el archivo [INSTALL.md](INSTALL.md).
