@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask,render_template
 from database.db_client import db, init_db
 from routes.auth import auth_bp
 from routes.cifrado import cifrado_bp
@@ -25,6 +25,10 @@ def create_app():
     return app
 
 app = create_app()
+
+@app.route("/")
+def index():
+    return render_template("index.html")
 
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5000))
